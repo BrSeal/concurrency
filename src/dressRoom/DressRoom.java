@@ -26,12 +26,12 @@ class DressRoom {
         lock.lock();
         try {
 
-            while (personsCount == size) {
-                fullyOccupiedCondition.await();
-            }
-
             while (occupiedBy != NONE && occupiedBy != person.gender()) {
                 genderCondition.await();
+            }
+
+            while (personsCount == size) {
+                fullyOccupiedCondition.await();
             }
             if (occupiedBy == NONE) {
                 occupiedBy = person.gender();
@@ -41,6 +41,7 @@ class DressRoom {
             personsCount++;
 
             System.out.println(person.name() + " берет ключ");
+            System.out.println("В раздевалке "+ personsCount + " человек");
         } finally {
             lock.unlock();
         }
@@ -52,11 +53,12 @@ class DressRoom {
         try {
             System.out.println(person.name() + " сдает ключ");
             personsCount--;
+            System.out.println("В раздевалке "+ personsCount + " человек");
             fullyOccupiedCondition.signal();
             if (personsCount == 0) {
                 occupiedBy = NONE;
                 System.out.println("Раздевалка свободна!");
-                genderCondition.signal();
+                genderCondition.signalAll();
             }
         } finally {
             lock.unlock();
